@@ -299,39 +299,36 @@ public class OmniFac extends StoragePlugin
                     }
                 }
             }
-            else
+            else if (numHeartbeats - tmp.getDaysToCreate() >= tmp.getLastUpdate())
             {
-                if (numHeartbeats - tmp.getDaysToCreate() >= tmp.getLastUpdate())
+                try
                 {
-                    try
+                    if (tmp.create())
                     {
-                        if (tmp.create())
+                        if (OmniFacSettings.shouldShowAddedCargo())
                         {
-                            if (OmniFacSettings.shouldShowAddedCargo())
-                            {
-                                addedShips.add(tmp.getDisplayName() + " (" + tmp.getTotal()
-                                        + "/" + tmp.getLimit() + ")");
-                            }
-                        }
-                        else if (OmniFacSettings.shouldShowLimitReached() && !tmp.hasWarnedLimit())
-                        {
-                            hitLimit.add(tmp.getDisplayName());
-                            tmp.setWarnedLimit(true);
+                            addedShips.add(tmp.getDisplayName() + " (" + tmp.getTotal()
+                                    + "/" + tmp.getLimit() + ")");
                         }
                     }
-                    catch (RuntimeException ex)
+                    else if (OmniFacSettings.shouldShowLimitReached() && !tmp.hasWarnedLimit())
+                    {
+                        hitLimit.add(tmp.getDisplayName());
+                        tmp.setWarnedLimit(true);
+                    }
+                }
+                catch (RuntimeException ex)
+                {
+                    Global.getSector().getCampaignUI().addMessage(
+                            "Failed to create ship '" + tmp.getDisplayName() + "' ("
+                            + tmp.getId() + ")! Was a required mod disabled?");
+
+                    if (OmniFacSettings.shouldRemoveBrokenGoods())
                     {
                         Global.getSector().getCampaignUI().addMessage(
-                                "Failed to create ship '" + tmp.getDisplayName() + "' ("
-                                + tmp.getId() + ")! Was a required mod disabled?");
-
-                        if (OmniFacSettings.shouldRemoveBrokenGoods())
-                        {
-                            Global.getSector().getCampaignUI().addMessage(
-                                    "Removed ship '" + tmp.getDisplayName() + "' from "
-                                    + station.getName() + "'s memory banks.");
-                            shipData.remove(tmp.getId());
-                        }
+                                "Removed ship '" + tmp.getDisplayName() + "' from "
+                                + station.getName() + "'s memory banks.");
+                        shipData.remove(tmp.getId());
                     }
                 }
             }
@@ -352,39 +349,36 @@ public class OmniFac extends StoragePlugin
                     }
                 }
             }
-            else
+            else if (numHeartbeats - tmp.getDaysToCreate() >= tmp.getLastUpdate())
             {
-                if (numHeartbeats - tmp.getDaysToCreate() >= tmp.getLastUpdate())
+                try
                 {
-                    try
+                    if (tmp.create())
                     {
-                        if (tmp.create())
+                        if (OmniFacSettings.shouldShowAddedCargo())
                         {
-                            if (OmniFacSettings.shouldShowAddedCargo())
-                            {
-                                addedWeps.add(tmp.getDisplayName() + " (" + tmp.getTotal()
-                                        + "/" + tmp.getLimit() + ")");
-                            }
-                        }
-                        else if (OmniFacSettings.shouldShowLimitReached() && !tmp.hasWarnedLimit())
-                        {
-                            hitLimit.add(tmp.getDisplayName());
-                            tmp.setWarnedLimit(true);
+                            addedWeps.add(tmp.getDisplayName() + " (" + tmp.getTotal()
+                                    + "/" + tmp.getLimit() + ")");
                         }
                     }
-                    catch (RuntimeException ex)
+                    else if (OmniFacSettings.shouldShowLimitReached() && !tmp.hasWarnedLimit())
+                    {
+                        hitLimit.add(tmp.getDisplayName());
+                        tmp.setWarnedLimit(true);
+                    }
+                }
+                catch (RuntimeException ex)
+                {
+                    Global.getSector().getCampaignUI().addMessage(
+                            "Failed to create weapon '" + tmp.getDisplayName() + "' ("
+                            + tmp.getId() + ")! Was a required mod disabled?");
+
+                    if (OmniFacSettings.shouldRemoveBrokenGoods())
                     {
                         Global.getSector().getCampaignUI().addMessage(
-                                "Failed to create weapon '" + tmp.getDisplayName() + "' ("
-                                + tmp.getId() + ")! Was a required mod disabled?");
-
-                        if (OmniFacSettings.shouldRemoveBrokenGoods())
-                        {
-                            Global.getSector().getCampaignUI().addMessage(
-                                    "Removed weapon '" + tmp.getDisplayName() + "' from "
-                                    + station.getName() + "'s memory banks.");
-                            wepData.remove(tmp.getId());
-                        }
+                                "Removed weapon '" + tmp.getDisplayName() + "' from "
+                                + station.getName() + "'s memory banks.");
+                        wepData.remove(tmp.getId());
                     }
                 }
             }
@@ -746,18 +740,23 @@ public class OmniFac extends StoragePlugin
             lastUpdate = numHeartbeats;
         }
 
+        private int getBaseDaysToCreate()
+        {
+            return (int) Math.max((fp * size) / 2f, size * 3f);
+        }
+
         @Override
         public int getDaysToAnalyze()
         {
             return (int) Math.max(1f,
-                    getDaysToCreate() * OmniFacSettings.getShipAnalysisTimeMod());
+                    getBaseDaysToCreate() * OmniFacSettings.getShipAnalysisTimeMod());
         }
 
         @Override
         public int getDaysToCreate()
         {
-            return (int) Math.max(((fp * size) / 2f) * OmniFacSettings.getShipProductionTimeMod(),
-                    size * 3f);
+            return (int) Math.max(size * 3f, getBaseDaysToCreate()
+                    * OmniFacSettings.getShipProductionTimeMod());
         }
 
         @Override
@@ -875,17 +874,23 @@ public class OmniFac extends StoragePlugin
             lastUpdate = numHeartbeats;
         }
 
+        private int getBaseDaysToCreate()
+        {
+            return (int) Math.max(size, 1f);
+        }
+
         @Override
         public int getDaysToAnalyze()
         {
             return (int) Math.max(1f,
-                    getDaysToCreate() * OmniFacSettings.getWeaponAnalysisTimeMod());
+                    getBaseDaysToCreate() * OmniFacSettings.getWeaponAnalysisTimeMod());
         }
 
         @Override
         public int getDaysToCreate()
         {
-            return (int) Math.max(size * OmniFacSettings.getWeaponProductionTimeMod(), 1f);
+            return (int) Math.max(getBaseDaysToCreate()
+                    * OmniFacSettings.getWeaponProductionTimeMod(), 1f);
         }
 
         @Override

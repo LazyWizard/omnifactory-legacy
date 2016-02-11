@@ -1,3 +1,13 @@
+ Version 1.11c (February XX, 2015)
+===================================
+The Omnifactory will no longer spawn orbiting stars unless every planet is taken
+Fixed analysis times being based on modified production time, not the base time
+Changes to default settings (in data\config\omnifactory\omnifac_settings.json):
+ - Quadrupled ship and weapon analysis times
+ - Doubled ship production time
+ - Increased weapon production time by 50%
+ - Factory no longer warns about reaching good limits by default
+
  Version 1.11b (October 12, 2015)
 ==================================
 Fixed spam if a restricted ship/item somehow ended up in the Omnifactory's cargo
