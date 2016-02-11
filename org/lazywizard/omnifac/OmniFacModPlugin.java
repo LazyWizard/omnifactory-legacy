@@ -19,6 +19,7 @@ import com.fs.starfarer.api.impl.campaign.shared.SharedData;
 import org.apache.log4j.Level;
 import org.lazywizard.lazylib.CollectionUtils;
 import org.lazywizard.lazylib.CollectionUtils.CollectionFilter;
+import org.lazywizard.lazylib.MathUtils;
 
 public class OmniFacModPlugin extends BaseModPlugin
 {
@@ -45,17 +46,17 @@ public class OmniFacModPlugin extends BaseModPlugin
         }
 
         // Find a random planet or star that doesn't already have a station
-        List<StarSystemAPI> systems = new ArrayList<>(sector.getStarSystems());
+        final List<StarSystemAPI> systems = new ArrayList<>(sector.getStarSystems());
         Collections.shuffle(systems);
         for (StarSystemAPI system : systems)
         {
-            CollectionFilter planetFilter = new EmptyOrbitFilter(system);
-            List<PlanetAPI> planets = CollectionUtils.filter(
+            final CollectionFilter planetFilter = new EmptyOrbitFilter(system);
+            final List<PlanetAPI> planets = CollectionUtils.filter(
                     system.getPlanets(), planetFilter);
             if (!planets.isEmpty())
             {
-                Collections.shuffle(planets);
-                PlanetAPI toOrbit = planets.get(0);
+                final PlanetAPI toOrbit = planets.get(
+                        MathUtils.getRandom().nextInt(planets.size()));
 
                 Global.getLogger(OmniFacModPlugin.class).log(Level.INFO,
                         "Omnifactory starting location: orbiting "
@@ -73,13 +74,14 @@ public class OmniFacModPlugin extends BaseModPlugin
         {
             if (system.getStar() != null)
             {
+                final PlanetAPI star = system.getStar();
                 Global.getLogger(OmniFacModPlugin.class).log(Level.INFO,
                         "Omnifactory starting location: orbiting "
-                        + system.getBaseName() + "'s star");
-                return system.addOrbitalStation(Constants.STATION_ID,
-                        system.getStar(), (float) (Math.random() * 360f),
-                        (system.getStar().getRadius() * 1.5f) + 50f, 50f,
-                        Constants.STATION_NAME, Constants.STATION_FACTION);
+                        + system.getBaseName() + "'s star (" + star.getName() + ")");
+                return system.addOrbitalStation(
+                        Constants.STATION_ID, star, (float) (Math.random() * 360f),
+                        (star.getRadius() * 1.5f) + 50f + star.getSpec().getCoronaSize(),
+                        50f, Constants.STATION_NAME, Constants.STATION_FACTION);
             }
         }
 
@@ -120,27 +122,27 @@ public class OmniFacModPlugin extends BaseModPlugin
         }
     }
 
-    private static class EmptyOrbitFilter implements CollectionFilter<SectorEntityToken>
+    private static class EmptyOrbitFilter implements CollectionFilter<PlanetAPI>
     {
-        final Set<SectorEntityToken> blocked;
+        final Set<PlanetAPI> blocked;
 
         private EmptyOrbitFilter(StarSystemAPI system)
         {
             blocked = new HashSet<>();
             for (SectorEntityToken station : system.getEntitiesWithTag(Tags.STATION))
             {
-                OrbitAPI orbit = station.getOrbit();
-                if (orbit != null && orbit.getFocus() != null)
+                final OrbitAPI orbit = station.getOrbit();
+                if (orbit != null && orbit.getFocus() instanceof PlanetAPI)
                 {
-                    blocked.add(station.getOrbit().getFocus());
+                    blocked.add((PlanetAPI) station.getOrbit().getFocus());
                 }
             }
         }
 
         @Override
-        public boolean accept(SectorEntityToken token)
+        public boolean accept(PlanetAPI planet)
         {
-            return !blocked.contains(token);
+            return !planet.isStar() && !blocked.contains(planet);
         }
     }
 }
