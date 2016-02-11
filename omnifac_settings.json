@@ -1,0 +1,23 @@
+{
+    "randomStartingLocation":false, # If false, will orbit Somnus in Corvus
+    "numberOfFactories":1, # Only works if randomStartingLocation is true
+    "showAddedCargo":false, # Incredibly spammy, only useful for debug
+    "showAnalysisComplete":true, # Notify player when production starts
+    "showLimitReached":false, # Notify player when factory is full of a good
+    "ignoreGoodRestrictions":false, # If true, factory can replicate anything
+    "removeBrokenGoods":false, # If a required mod is removed, remove its goods
+    "shipAnalysisTimeMod":2.0, # Double
+    "weaponAnalysisTimeMod":2.0, # Double
+    "shipProductionTimeMod":2.0, # Double
+    "weaponProductionTimeMod":1.5, # Double
+    "requiredCrewToFunction":0, # Integer
+    "requiredSuppliesPerDay":0.0, # Double
+    "requiredFuelPerDay":0.0, # Double
+    "maxHullsPerFighter":3, # Integer
+    "maxHullsPerFrigate":3, # Integer
+    "maxHullsPerDestroyer":2, # Integer
+    "maxHullsPerCruiser":2, # Integer
+    "maxHullsPerCapital":1, # Integer
+    "maxStacksPerWeapon":0.5, # Double
+    "omnifactoryTariff":1.0 # Double
+}

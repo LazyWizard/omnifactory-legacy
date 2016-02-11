@@ -1,0 +1,228 @@
+ Version 1.11b (October 12, 2015)
+==================================
+Fixed spam if a restricted ship/item somehow ended up in the Omnifactory's cargo
+Implemented support for multiple Omnifactories:
+ - Change "numberOfFactories" in data/config/omnifactory/omnifac_settings.json;
+   "randomStartingLocation" must be true for this setting to work
+initOmnifactory() now sets up the storage submarket if it's not present
+
+ Version 1.11 (July 11, 2015)
+==============================
+(this version is not save compatible with earlier versions)
+Rewrote Omnifactory as a submarket plugin
+Random starting location is now disabled by default
+Fixed resources being illegal even if the setting to make them required is on
+Fixed weapon production limits being ludicrously high post market update
+Added console command OmnifacStatus, shows location and data for all factories
+Added BlueprintData interface:
+ - int getDaysToAnalyze()
+ - int getDaysToCreate()
+ - int getLastUpdate()
+ - String getId()
+ - String getDisplayName()
+ - int getLimit()
+ - int getTotal()
+ - boolean isAnalyzed()
+ - setAnalyzed(boolean isAnalyzed)
+Added getKnownShips(), getKnownWings(), getKnownWeapons(), return BlueprintDatas
+
+ Version 1.10c (January 29, 2015)
+==================================
+Added "randomStartingLocation" setting, enabled by default:
+ - With this set to true, the Omnifactory will orbit a random planet or star
+   in a random system, so long as that planet doesn't have a station already
+Default sell price is now almost always 0, except with very large transactions
+
+ Version 1.10b (January 9, 2015)
+=================================
+Added "ignoreGoodRestrictions" setting, allows replication of restricted goods
+You can no longer sell restricted or already known ships/weapons to the factory
+Omnifactory now includes a storage tab, unlocked by default
+Added a description for the Omnifactory submarket
+Buy/sell replaced with appropriate verbs based on tariff setting
+
+ Version 1.10 (January 5, 2015)
+================================
+(this version is not save compatible with earlier versions) (duh)
+Compatibility fixes for new economy/market systems
+Added Version Checker support
+When added to existing save, syncs factory heartbeat to beginning of next day
+Settings are global, defined in data/config/omnifactory/omnifac_settings.json
+Restricted goods are defined in a CSV, merged so multiple mods can add to list
+Fixed ancient bug where the wrong numbers were shown for analysis phase duration
+Added "omnifactoryTariff" setting, defaults to 100%
+Balance tweaks (mostly due to above default tariff):
+ - You no longer earn a profit when selling to the Omnifactory
+ - The prices of produced ships/weapons are vastly inflated
+ - Resources still cost almost nothing to store (as there's no market demand)
+Added to OmniFacSettings:
+ - Set<String> getRestrictedWeapons()
+ - Set<String> getRestrictedShips()
+ - float getOmnifactoryTariff()
+
+ Version 1.9 (May 9, 2014)
+===========================
+Many changes to the mod's code, but it should be backwards-compatible with 1.8b
+New methods in OmniFac:
+ - New constructor: OmniFac(SectorEntityToken station, String settingsFile)
+ - OmniFacSettings getSettings()
+ - String getSettingsFile()
+ - setSettingsFile(String settingsFile)
+New class OmniFacSettings:
+ - boolean shouldShowAddedCargo()
+ - boolean shouldShowAnalysisComplete()
+ - boolean shouldShowLimitReached()
+ - boolean shouldRemoveBrokenGoods()
+ - float getShipAnalysisTimeMod()
+ - float getWeaponAnalysisTimeMod()
+ - float getShipProductionTimeMod()
+ - float getWeaponProductionTimeMod()
+ - int getRequiredCrew()
+ - float getRequiredSuppliesPerDay()
+ - float getRequiredFuelPerDay()
+ - int getMaxHullsPerFighter()
+ - int getMaxHullsPerFrigate()
+ - int getMaxHullsPerDestroyer()
+ - int getMaxHullsPerCruiser()
+ - int getMaxHullsPerCapital()
+ - float getMaxStacksPerWeapon()
+Settings are reloaded from JSON every session instead of stored in the savefile
+ (this also means individual settings cannot be changed through code anymore,
+ and must be set as a whole using setSettingsFile() and another settings JSON)
+Removed all other settings-related methods in OmniFac, with the exception of
+ adding/removing restricted ships and weapons
+The Omnifactory now removes weapons from ships before it consumes them
+Fixed the Omnifactory and fighter wing names being displayed incorrectly
+
+ Version 1.8b (October 5, 2013)
+================================
+Omnifactory is now player-owned (fixes free transfer bug, requires new game)
+
+ Version 1.8 (September 26, 2013)
+==================================
+(this version is not save compatible with earlier versions)
+Fixed memory leak with factory lookup, updated to new ModPlugin system
+Added loadSettingsFromJSON(String filePath)
+ - see data/config/omnifac_settings.json for the default Omnifactory settings
+ - modders can call a different settings file for each factory
+
+ Version 1.7c (March 19, 2013)
+===============================
+Fixed divide-by-zero issue when using low custom analysis time modifiers
+
+ Version 1.7b (March 9, 2013)
+==============================
+Fixed NPE with addRestrictedShip() and addRestrictedWeapon()
+
+ Version 1.7 (March 8, 2013)
+=============================
+(this version is not save compatible with earlier versions)
+Unknown goods now must be analyzed before production can begin:
+ - Adds time delay before the production run will start
+ - Defaults to 1x the production time of the good, can be changed by mods
+ - Set the modifier to zero to disable good analysis completely
+Mods can now prevent certain ships and goods from being added to the factory.
+New settings:
+ - setShowAnalysisComplete(boolean showAnalysisComplete)
+   Sets if the station broadcasts when good analysis is done. Defaults to true.
+ - setShipAnalysisTimeModifier(float modifier)
+   Sets ship blueprint analysis time modifier. Defaults to 1.0.
+ - setWeaponAnalysisTimeModifier(float modifier)
+   Sets weapon blueprint analysis time modifier. Defaults to 1.0.
+ - addRestrictedShip(String hullId)
+   Adds a hull type to the restricted list (can't be replicated).
+ - removeRestrictedShip(String hullId)
+   Removes a hull type from the restricted list.
+ - addRestrictedWeapon(String weaponId)
+   Adds a weapon to the restricted list (can't be replicated).
+ - removeRestrictedWeapon(String weaponId)
+   Removes a weapon from the restricted list.
+Other new methods:
+ - boolean isRestrictedShip(FleetMemberAPI ship)
+   Returns true if this ship can't be reproduced by the Omnifactory.
+ - boolean isRestrictedWeapon(CargoStackAPI stack)
+   Returns true if this weapon can't be reproduced by the Omnifactory.
+
+ Version 1.6b (March 1, 2013)
+==============================
+Removed bundled LazyLib, now requires LazyLib utility mod active to function
+
+ Version 1.6 (February 10, 2013)
+================================
+(this version is not save compatible with earlier versions)
+Updated bundled version of LazyLib
+'Added <x> goods' message no longer appear by default (re-enable in AddOmniFac)
+Fixed 'limit reached' message being shown multiple times for the same good
+
+ Version 1.5 (February 2, 2013)
+================================
+Fixed bug when parsing hull names of certain mods' ships
+Lowered the maximum number of hulls produced (was 6/5/4/3/2, now 3/3/2/2/1)
+Lowered the maximum stack size of weapons produced (was 40/20/10, now 20/10/5)
+
+ Version 1.4 (January 20, 2013)
+================================
+Updated bundled version of LazyLib
+This is now a utility mod (can be run alongside total conversions)
+Generator will attempt to pick the best spot for the station in TC systems
+
+ Version 1.3 (January 2, 2013)
+===============================
+(this version is not save compatible with earlier versions)
+This mod now requires LazyLib (included in the download)
+Omnifactory notifications are more organized and much less spammy now.
+Fixed rare divide by zero bug with certain modded fighters.
+New setting:
+ - setMaxStacksPerWeapon(float maxStacks)
+   Sets how many stacks of each weapon to produce. Defaults to 1.0.
+
+ Version 1.2 (January 1, 2013)
+===============================
+(this version is not save compatible with earlier versions)
+Moved mod code into a jar (better type-safety, faster loading)
+The omnifactory can now optionally require fuel, supplies and crew to function.
+Added warnings when factory requirements are not met.
+New methods for controlling factory settings (these are all per station):
+ - setShowAddedCargo(boolean showAddedCargo)
+   Sets if 'X added to station' messages appear. Defaults to true.
+ - setShowLimitReached(boolean showLimitReached)
+   Sets if 'Limit for X reached' messages appear. Defaults to true.
+ - setRemoveBrokenGoods(boolean removeBrokenGoods)
+   Sets if buggy goods should be removed from memory. Defaults to false.
+ - setShipProductionTimeModifier(float modifier)
+   Sets ship production time modifier. Defaults to 1.0.
+ - setWeaponProductionTimeModifier(float modifier)
+   Sets weapon production time modifier. Defaults to 1.0.
+ - setRequiredCrew(int requiredCrew)
+   Sets the minimum amount of crew for the factory to function. Defaults to 0.
+ - setRequiredSuppliesPerDay(float suppliesPerDay)
+   Sets factory supply consumption per day. Defaults to 0.
+ - setRequiredFuelPerDay(float fuelPerDay)
+   Sets factory fuel consumption per day. Defaults to 0.
+ - setMaxHullsPerFighter(int maxHulls)
+   Sets how many of each fighter to produce. Retroactive. Defaults to 6.
+ - setMaxHullsPerFrigate(int maxHulls)
+   Sets how many of each frigate to produce. Retroactive. Defaults to 5.
+ - setMaxHullsPerDestroyer(int maxHulls)
+   Sets how many of each destroyer to produce. Retroactive. Defaults to 4.
+ - setMaxHullsPerCruiser(int maxHulls)
+   Sets how many of each cruiser to produce. Retroactive. Defaults to 3.
+ - setMaxHullsPerCapital(int maxHulls)
+   Sets how many of each capital ship to produce. Retroactive. Defaults to 2.
+Other new methods:
+ - boolean isUnknownShip(FleetMemberAPI ship)
+   Returns true if this station has never encountered this ship's base hull.
+ - boolean isUnknownWeapon(CargoStackAPI stack)
+   Returns true if this station has never encountered this weapon.
+
+ Version 1.1 (January 1, 2013)
+===============================
+Fixed nasty crash bug with non-standard variant IDs
+Added station tracking and lookup:
+ - List OmniFac.getFactories()
+ - OmniFac OmniFac.getFactory(SectorEntityToken station)
+ - boolean OmniFac.isFactory(SectorEntityToken station)
+
+ Version 1.0 (December 27, 2012)
+=================================
+Initial release
