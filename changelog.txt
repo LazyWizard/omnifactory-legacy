@@ -2,10 +2,12 @@
 ===================================
 The Omnifactory will no longer spawn orbiting stars unless every planet is taken
 Fixed analysis times being based on modified production time, not the base time
+Weapon analysis/production times are now modified by their tier
 Changes to default settings (in data\config\omnifactory\omnifac_settings.json):
+ - Reduced max ships per hull to 2/2/2/1/1 (was 3/3/2/2/1) based on hull size
  - Quadrupled ship and weapon analysis times
- - Doubled ship production time
- - Increased weapon production time by 50%
+ - Doubled ship production times
+ - Increased weapon production times by 50%
  - Factory no longer warns about reaching good limits by default
 
  Version 1.11b (October 12, 2015)

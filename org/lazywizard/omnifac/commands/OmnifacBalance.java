@@ -25,7 +25,33 @@ public class OmnifacBalance implements BaseCommand
 {
     private static final Logger Log = Logger.getLogger(OmnifacBalance.class);
 
-    private static int getDaysToCreate(FleetMemberAPI member, float modifier)
+    // ===== NEW =====
+    private static int getDaysToCreateNew(FleetMemberAPI member, float modifier)
+    {
+        int fp = member.getFleetPointCost();
+        int size = member.getHullSpec().getHullSize().ordinal();
+
+        return Math.round(Math.max(1f, Math.max((fp * size) / 2f, size * 2f) * modifier));
+    }
+
+    private static int getDaysToAnalyzeNew(FleetMemberAPI member, float modifier)
+    {
+        return Math.round(Math.max(1f, getDaysToCreateNew(member, 1f) * modifier));
+    }
+
+    private static int getDaysToCreateNew(WeaponSpecAPI weapon, float modifier)
+    {
+        return Math.round(Math.max(1f, getDaysToCreateOld(weapon, modifier) * getTierModifier(weapon)));
+    }
+
+    private static int getDaysToAnalyzeNew(WeaponSpecAPI weapon, float modifier)
+    {
+        return Math.round(Math.max(1f, getDaysToCreateNew(weapon, 1f) * modifier));
+    }
+
+    // ===== OLD =====
+    //<editor-fold defaultstate="collapsed" desc="Old methods">
+    private static int getDaysToCreateOld(FleetMemberAPI member, float modifier)
     {
         int fp = member.getFleetPointCost();
         int size = member.getHullSpec().getHullSize().ordinal();
@@ -33,11 +59,23 @@ public class OmnifacBalance implements BaseCommand
         return (int) Math.max(size * 3f, Math.max((fp * size) / 2f, size * 3f) * modifier);
     }
 
-    private static int getDaysToAnalyze(FleetMemberAPI member, float modifier)
+    private static int getDaysToAnalyzeOld(FleetMemberAPI member, float modifier)
     {
-        return (int) Math.max(1f, getDaysToCreate(member, 1f) * modifier);
+        return (int) Math.max(1f, getDaysToCreateOld(member, 1f) * modifier);
     }
 
+    private static int getDaysToCreateOld(WeaponSpecAPI weapon, float modifier)
+    {
+        return (int) Math.max(Math.max(getCargoSpace(weapon), 1f) * modifier, 1f);
+    }
+
+    private static int getDaysToAnalyzeOld(WeaponSpecAPI weapon, float modifier)
+    {
+        return (int) Math.max(1f, getDaysToCreateOld(weapon, 1f) * modifier);
+    }
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="Misc methods">
     private static float getCargoSpace(WeaponSpecAPI weapon)
     {
         switch (weapon.getSize())
@@ -53,14 +91,21 @@ public class OmnifacBalance implements BaseCommand
         }
     }
 
-    private static int getDaysToCreate(WeaponSpecAPI weapon, float modifier)
+    private static float getTierModifier(WeaponSpecAPI weapon)
     {
-        return (int) Math.max(Math.max(getCargoSpace(weapon), 1f) * modifier, 1f);
-    }
-
-    private static int getDaysToAnalyze(WeaponSpecAPI weapon, float modifier)
-    {
-        return (int) Math.max(1f, getDaysToCreate(weapon, 1f) * modifier);
+        switch (weapon.getTier())
+        {
+            case 0:
+                return 0.8f;
+            case 1:
+                return 1f;
+            case 2:
+                return 1.2f;
+            case 3:
+                return 1.5f;
+            default:
+                return 1f;
+        }
     }
 
     private static List<FleetMemberAPI> generateFleetMembers()
@@ -96,6 +141,7 @@ public class OmnifacBalance implements BaseCommand
         Collections.sort(weapons, new WeaponComparator());
         return weapons;
     }
+    //</editor-fold>
 
     @Override
     public CommandResult runCommand(String args, CommandContext context)
@@ -127,11 +173,11 @@ public class OmnifacBalance implements BaseCommand
                 lastHullSize = size;
             }
 
-            final int daysToAnalyzeOld = getDaysToAnalyze(member, 0.5f),
-                    daysToCreateOld = getDaysToCreate(member, 1f),
-                    daysToAnalyzeNew = getDaysToAnalyze(member,
+            final int daysToAnalyzeOld = getDaysToAnalyzeOld(member, 0.5f),
+                    daysToCreateOld = getDaysToCreateOld(member, 1f),
+                    daysToAnalyzeNew = getDaysToAnalyzeNew(member,
                             OmniFacSettings.getShipAnalysisTimeMod()),
-                    daysToCreateNew = getDaysToCreate(member,
+                    daysToCreateNew = getDaysToCreateNew(member,
                             OmniFacSettings.getShipProductionTimeMod());
             sb.append(String.format("| %-26.26s | %5d | %4d | %5d | %4d |\n",
                     member.getHullSpec().getHullName(),
@@ -160,11 +206,11 @@ public class OmnifacBalance implements BaseCommand
                 lastWeaponSize = size;
             }
 
-            final int daysToAnalyzeOld = getDaysToAnalyze(weapon, 0.5f),
-                    daysToCreateOld = getDaysToCreate(weapon, 1f),
-                    daysToAnalyzeNew = getDaysToAnalyze(weapon,
+            final int daysToAnalyzeOld = getDaysToAnalyzeOld(weapon, 0.5f),
+                    daysToCreateOld = getDaysToCreateOld(weapon, 1f),
+                    daysToAnalyzeNew = getDaysToAnalyzeNew(weapon,
                             OmniFacSettings.getWeaponAnalysisTimeMod()),
-                    daysToCreateNew = getDaysToCreate(weapon,
+                    daysToCreateNew = getDaysToCreateNew(weapon,
                             OmniFacSettings.getWeaponProductionTimeMod());
             sb.append(String.format("| %-26.26s | %5d | %4d | %5d | %4d |\n",
                     weapon.getWeaponName(),
@@ -177,11 +223,6 @@ public class OmnifacBalance implements BaseCommand
         Log.info("Balance report:\n\n" + sb.toString());
         Console.showMessage("Saved balance report to starsector.log");
         return CommandResult.SUCCESS;
-    }
-
-    public static void main(String[] args)
-    {
-
     }
 
     private static class WeaponComparator implements Comparator<WeaponSpecAPI>

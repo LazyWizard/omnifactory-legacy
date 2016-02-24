@@ -13,10 +13,10 @@
     "requiredCrewToFunction":0, # Integer
     "requiredSuppliesPerDay":0.0, # Double
     "requiredFuelPerDay":0.0, # Double
-    "maxHullsPerFighter":3, # Integer
-    "maxHullsPerFrigate":3, # Integer
+    "maxHullsPerFighter":2, # Integer
+    "maxHullsPerFrigate":2, # Integer
     "maxHullsPerDestroyer":2, # Integer
-    "maxHullsPerCruiser":2, # Integer
+    "maxHullsPerCruiser":1, # Integer
     "maxHullsPerCapital":1, # Integer
     "maxStacksPerWeapon":0.5, # Double
     "omnifactoryTariff":1.0 # Double
