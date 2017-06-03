@@ -16,10 +16,12 @@ import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.SubmarketPlugin.TransferAction;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
+import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.fleet.FleetMemberType;
 import com.fs.starfarer.api.impl.campaign.ids.Submarkets;
 import com.fs.starfarer.api.impl.campaign.submarkets.StoragePlugin;
+import com.fs.starfarer.api.loading.WeaponSpecAPI;
 import org.lazywizard.lazylib.CollectionUtils;
 import org.lazywizard.lazylib.campaign.CargoUtils;
 import org.lazywizard.lazylib.campaign.MessageUtils;
@@ -740,23 +742,26 @@ public class OmniFac extends StoragePlugin
             lastUpdate = numHeartbeats;
         }
 
+        private float getTimeModifier(ShipHullSpecAPI ship)
+        {
+            //ship.get
+        }
+
         private int getBaseDaysToCreate()
         {
-            return (int) Math.max((fp * size) / 2f, size * 3f);
+            return Math.round(Math.max(1f, ((fp * size) / 2f) * getTimeModifier(ship)));
         }
 
         @Override
         public int getDaysToAnalyze()
         {
-            return (int) Math.max(1f,
-                    getBaseDaysToCreate() * OmniFacSettings.getShipAnalysisTimeMod());
+            return Math.round(Math.max(1f, getBaseDaysToCreate() * OmniFacSettings.getShipAnalysisTimeMod()));
         }
 
         @Override
         public int getDaysToCreate()
         {
-            return (int) Math.max(size * 3f, getBaseDaysToCreate()
-                    * OmniFacSettings.getShipProductionTimeMod());
+            return Math.round(Math.max(1f, getBaseDaysToCreate() * OmniFacSettings.getShipProductionTimeMod()));
         }
 
         @Override
@@ -864,8 +869,9 @@ public class OmniFac extends StoragePlugin
 
         WeaponData(CargoStackAPI stack)
         {
-            id = (String) stack.getData();
-            displayName = stack.getDisplayName();
+            final WeaponSpecAPI spec = stack.getWeaponSpecIfWeapon();
+            id = spec.getWeaponId();
+            displayName = spec.getWeaponName();
             size = stack.getCargoSpacePerUnit();
             //2 40
             //4 20
@@ -874,23 +880,38 @@ public class OmniFac extends StoragePlugin
             lastUpdate = numHeartbeats;
         }
 
+        private float getTimeModifier(WeaponSpecAPI weapon)
+        {
+            switch (weapon.getTier())
+            {
+                case 0:
+                    return 0.8f;
+                case 1:
+                    return 1f;
+                case 2:
+                    return 1.2f;
+                case 3:
+                    return 1.5f;
+                default:
+                    return 2f;
+            }
+        }
+
         private int getBaseDaysToCreate()
         {
-            return (int) Math.max(size, 1f);
+            return Math.round(Math.max(1f, size * getTimeModifier(weapon)));
         }
 
         @Override
         public int getDaysToAnalyze()
         {
-            return (int) Math.max(1f,
-                    getBaseDaysToCreate() * OmniFacSettings.getWeaponAnalysisTimeMod());
+            return Math.round(Math.max(1f, getBaseDaysToCreate() * OmniFacSettings.getWeaponAnalysisTimeMod()));
         }
 
         @Override
         public int getDaysToCreate()
         {
-            return (int) Math.max(getBaseDaysToCreate()
-                    * OmniFacSettings.getWeaponProductionTimeMod(), 1f);
+            return Math.round(Math.max(1f, getBaseDaysToCreate() * OmniFacSettings.getWeaponProductionTimeMod()));
         }
 
         @Override

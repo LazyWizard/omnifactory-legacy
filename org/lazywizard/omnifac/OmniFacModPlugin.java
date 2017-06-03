@@ -29,20 +29,26 @@ public class OmniFacModPlugin extends BaseModPlugin
 
         if (!OmniFacSettings.shouldHaveRandomStartingLocation())
         {
-            StarSystemAPI corvus = sector.getStarSystem("corvus");
-            if (corvus != null)
+            StarSystemAPI system = sector.getStarSystem(
+                    OmniFacSettings.getFixedStartingLocationSystem());
+            if (system != null)
             {
-                Global.getLogger(OmniFacModPlugin.class).log(Level.INFO,
-                        "Omnifactory starting location: orbiting Somnus in Corvus");
+                SectorEntityToken anchor = system.getEntityById(
+                        OmniFacSettings.getFixedStartingLocationAnchorEntity());
+                if (anchor != null)
+                {
+                    Global.getLogger(OmniFacModPlugin.class).log(Level.INFO,
+                            "Omnifactory starting location: orbiting "
+                            + anchor.getName() + " in " + system.getBaseName());
 
-                // By default the Omnifactory orbits the planet Somnus in the Corvus system
-                return corvus.addOrbitalStation(Constants.STATION_ID,
-                        corvus.getEntityById("corvus_IV"), 315f,
-                        300f, 50f, Constants.STATION_NAME, Constants.STATION_FACTION);
+                    return system.addOrbitalStation(Constants.STATION_ID,
+                            anchor, 315f, (anchor.getRadius() * 1.1f) + 100f, 50f,
+                            Constants.STATION_NAME, Constants.STATION_FACTION);
+                }
             }
 
-            Global.getLogger(OmniFacModPlugin.class).log(Level.INFO,
-                    "Corvus not found, using random Omnifactory location");
+            Global.getLogger(OmniFacModPlugin.class).log(Level.ERROR,
+                    "Anchor not found, using random Omnifactory location");
         }
 
         // Find a random planet or star that doesn't already have a station
@@ -50,7 +56,7 @@ public class OmniFacModPlugin extends BaseModPlugin
         Collections.shuffle(systems);
         for (StarSystemAPI system : systems)
         {
-            final CollectionFilter planetFilter = new EmptyOrbitFilter(system);
+            final CollectionFilter planetFilter = new ValidOrbitFilter(system);
             final List<PlanetAPI> planets = CollectionUtils.filter(
                     system.getPlanets(), planetFilter);
             if (!planets.isEmpty())
@@ -122,11 +128,11 @@ public class OmniFacModPlugin extends BaseModPlugin
         }
     }
 
-    private static class EmptyOrbitFilter implements CollectionFilter<PlanetAPI>
+    private static class ValidOrbitFilter implements CollectionFilter<PlanetAPI>
     {
         final Set<PlanetAPI> blocked;
 
-        private EmptyOrbitFilter(StarSystemAPI system)
+        private ValidOrbitFilter(StarSystemAPI system)
         {
             blocked = new HashSet<>();
             for (SectorEntityToken station : system.getEntitiesWithTag(Tags.STATION))
